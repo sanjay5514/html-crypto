@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" style="background-image: url('./image.png');background-size: 100vh;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRYPTO ASSIGNMENT-1</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 style="text-align: center; color: rgb(61, 253, 102);">CRPTO ASSIGNMENT-1</h1>
+
+    <h3 style="margin: 0%; color: rgb(255, 0, 106);">KEY :</h3>
+    <input type="text" id="key" >
+
+
+    <h3 style="margin: 0%; color: rgb(255, 0, 106);">PLAINTEXT :</h3>
+    <textarea id="plaintext" rows="4" ></textarea>
+
+    <button onclick="encrypt()">Encrypt</button>
+
+    <h2 style="color: rgb(228, 255, 76);">Encrypted Ciphertext</h2>
+    <textarea id="ciphertext" rows="4" readonly></textarea>
+
+    <button onclick="decrypt()">Decrypt</button>
+
+    <h2 style="color: rgb(252, 255, 60);">Decrypted Text</h2>
+    <textarea id="decryptedText" rows="4" readonly></textarea>
+
+    <script>
+        // Generate scrambling sequence based on key
+        function generateScramblingSequence(key, length) {
+            let sequence = [];
+            for (let i = 0; i < length; i++) {
+                sequence.push(i);
+            }
+            // Sort sequence based on key character codes
+            sequence.sort((a, b) => key.charCodeAt(a % key.length) - key.charCodeAt(b % key.length));
+            return sequence;
+        }
+
+        // Reverse scrambling sequence for decryption
+        function reverseScramblingSequence(sequence) {
+            let reverseSequence = new Array(sequence.length);
+            for (let i = 0; i < sequence.length; i++) {
+                reverseSequence[sequence[i]] = i;
+            }
+            return reverseSequence;
+        }
+
+        // Generate transformation values based on the key
+        function generateTransformationValues(key) {
+            let values = [];
+            let sum = 0;
+
+            // First calculate T1, the sum of all key characters
+            for (let i = 0; i < key.length; i++) {
+                sum += key.charCodeAt(i);
+            }
+            values.push(sum % 95); // T1
+
+            // Progressively calculate T2, T3, etc.
+            for (let i = 1; i < key.length; i++) {
+                sum -= key.charCodeAt(i - 1);
+                values.push(sum % 95); // T2, T3, ...
+            }
+            return values;
+        }
+
+        // Scramble text based on the scrambling sequence
+        function scrambleText(text, sequence) {
+            let scrambledText = new Array(text.length);
+            for (let i = 0; i < text.length; i++) {
+                scrambledText[sequence[i]] = text[i];
+            }
+            return scrambledText.join('');
+        }
+
+        // Unscramble text using the reverse scrambling sequence
+        function unscrambleText(text, reverseSequence) {
+            let unscrambledText = new Array(text.length);
+            for (let i = 0; i < text.length; i++) {
+                unscrambledText[reverseSequence[i]] = text[i];
+            }
+            return unscrambledText.join('');
+        }
+
+        // Encrypt the plaintext using MSC
+        function encrypt() {
+            let key = document.getElementById('key').value;
+            let plaintext = document.getElementById('plaintext').value;
+
+            if (!key || !plaintext) {
+                alert("Please enter both a key and plaintext!");
+                return;
+            }
+
+            let sequence = generateScramblingSequence(key, plaintext.length);
+            let scrambledText = scrambleText(plaintext, sequence);
+            let transformationValues = generateTransformationValues(key);
+
+            let ciphertext = '';
+
+            // Apply substitution for each character
+            for (let i = 0; i < scrambledText.length; i++) {
+                let asciiValue = scrambledText.charCodeAt(i);
+                let transformation = transformationValues[i % transformationValues.length];
+                let newAsciiValue = ((asciiValue - 32 + transformation) % 95) + 32; // Wrap in printable ASCII range
+                ciphertext += String.fromCharCode(newAsciiValue);
+            }
+
+            document.getElementById('ciphertext').value = ciphertext;
+        }
+
+        // Decrypt the ciphertext
+        function decrypt() {
+            let key = document.getElementById('key').value;
+            let ciphertext = document.getElementById('ciphertext').value;
+
+            if (!key || !ciphertext) {
+                alert("Please enter both a key and ciphertext!");
+                return;
+            }
+
+            let sequence = generateScramblingSequence(key, ciphertext.length);
+            let reverseSequence = reverseScramblingSequence(sequence);
+            let transformationValues = generateTransformationValues(key);
+
+            let decryptedText = '';
+
+            // Reverse substitution
+            for (let i = 0; i < ciphertext.length; i++) {
+                let asciiValue = ciphertext.charCodeAt(i);
+                let transformation = transformationValues[i % transformationValues.length];
+                let originalAsciiValue = ((asciiValue - 32 - transformation + 95) % 95) + 32; // Reverse transformation
+                decryptedText += String.fromCharCode(originalAsciiValue);
+            }
+
+            // Unscramble the text
+            let unscrambledText = unscrambleText(decryptedText, reverseSequence);
+
+            document.getElementById('decryptedText').value = unscrambledText;
+        }
+    </script>
+    <footer style="color: beige; text-align: center; margin-top: 20px; margin-bottom: 0ch; color: #fc0000;">Sanjay C  ,Sri Krishna S,   Mohamed Sahul Hameed</footer>
+</body>
+</html>
